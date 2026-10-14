@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Music</title>
+<style>
+:root{--bg:#f5f5f7;--card:rgba(255,255,255,.8);--tx:#1d1d1f;--sub:#86868b;--ac:#fa2d48;--ln:rgba(0,0,0,.08)}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1e;--card:rgba(44,44,46,.8);--tx:#f5f5f7;--sub:#98989d;--ln:rgba(255,255,255,.1)}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--tx);font:14px -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif}
+.win{position:relative;width:min(900px,96vw);height:min(600px,92vh);display:grid;grid-template-columns:290px 1fr;background:var(--card);backdrop-filter:blur(30px);border:1px solid var(--ln);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden}
+.side{border-right:1px solid var(--ln);padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.dots{display:flex;gap:8px}.dots i{width:12px;height:12px;border-radius:50%}
+.dots i:nth-child(1){background:#ff5f57}.dots i:nth-child(2){background:#febc2e}.dots i:nth-child(3){background:#28c840}
+input{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--ln);background:rgba(127,127,127,.1);color:var(--tx);font:inherit;outline:none}
+input:focus{border-color:var(--ac)}
+.tabs{display:flex;background:rgba(127,127,127,.12);border-radius:8px;padding:2px}
+.tabs div{flex:1;text-align:center;padding:5px 0;border-radius:6px;cursor:pointer;font-size:12px}
+.tabs .on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.q{flex:1;overflow:auto;display:flex;flex-direction:column;gap:2px;min-height:0}
+.it{padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.it:hover{background:rgba(127,127,127,.12)}.it.on{background:var(--ac);color:#fff}
+.it span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.it b{font-weight:400;opacity:.6}
+.h{font-weight:600;padding:6px 10px;color:var(--sub);font-size:12px}
+.link{background:#1d1d1f;color:#fff;cursor:pointer;padding:8px 12px;margin:3px 10px;border-radius:8px;text-align:center;font-size:13px;transition:opacity .15s}
+.link:hover{opacity:.8}
+@media(prefers-color-scheme:dark){.link{background:#3a3a3c}}
+.main{display:flex;flex-direction:column;padding:20px;gap:14px;min-width:0}
+.vid{flex:1;border-radius:10px;overflow:hidden;background:#000;min-height:0}
+.vid iframe,#yt{width:100%;height:100%}
+.row{display:flex;align-items:center;gap:10px}
+.title{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.bar{height:4px;background:var(--ln);border-radius:2px;cursor:pointer}
+.bar div{height:100%;width:0;background:var(--ac);border-radius:2px}
+.time{display:flex;justify-content:space-between;color:var(--sub);font-size:12px;margin-top:10px}
+.ctl{display:flex;justify-content:center;align-items:center;gap:22px}
+button{border:0;background:none;color:var(--tx);font-size:22px;cursor:pointer;padding:4px 8px;border-radius:8px;font-family:inherit}
+button:hover{background:rgba(127,127,127,.15)}#pp{font-size:30px}
+#fav{font-size:22px;color:var(--sub)}#fav.on{color:var(--ac)}
+.small{font-size:13px;background:var(--ac);color:#fff;padding:6px 12px}.small:hover{background:var(--ac);opacity:.85}
+.hint{color:var(--sub);font-size:12px}
+.modal{position:absolute;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:5}
+.modal.show{display:flex}
+.box{width:300px;background:var(--bg);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;max-height:80%;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.box h3{margin:0 0 4px;font-size:15px}
+@media(max-width:640px){.win{grid-template-columns:1fr;grid-template-rows:260px 1fr}}
+</style></head><body>
+<div class="win">
+ <div class="side">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <input id="in" placeholder="Ссылка YouTube или поиск">
+  <div class="tabs"><div data-t="queue" class="on">Очередь</div><div data-t="pl">Плейлисты</div><div data-t="rec">Для тебя</div></div>
+  <div class="q" id="q"></div>
+ </div>
+ <div class="main">
+  <div class="vid"><div id="yt"></div></div>
+  <div class="row"><div class="title" id="t">Ничего не играет</div><button id="fav" title="В плейлист">♡</button></div>
+  <div><div class="bar" id="bar"><div id="fill"></div></div>
+  <div class="time"><span id="c">0:00</span><span id="d">0:00</span></div></div>
+  <div class="ctl"><button id="pv">⏮</button><button id="pp">▶︎</button><button id="nx">⏭</button></div>
+ </div>
+ <div class="modal" id="m"><div class="box" id="mb"></div></div>
+</div>
+<script src="config.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let P,list=[],cur=-1,tab="queue",openPl=null,pls=store.get("pls",{}),token=null,results=[],liked=[],recMsg="",prof=store.get("prof",{g:{},a:{},no:[]}),seen=store.get("seen",[]),recs=[],key=store.get("key","")||window.APP_KEY||"",quizG=new Set();
+const fmt=s=>{s=Math.floor(s||0);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+const esc=s=>{const d=document.createElement("div");d.textContent=s;return d.innerHTML};
+
+function onYouTubeIframeAPIReady(){
+ P=new YT.Player("yt",{playerVars:{playsinline:1,rel:0},events:{onStateChange:e=>{
+  $("pp").textContent=e.data==1?"⏸":"▶︎";
+  if(e.data==1){const d=P.getVideoData();if(list[cur]&&!list[cur].pl){list[cur].t=d.title;list[cur].id=d.video_id}$("t").textContent=d.title;markSeen(d);favState();if(tab=="queue")draw()}
+  if(e.data==0){learn(artistOf(P.getVideoData()),1);go(cur+1)}}}});
+ setInterval(()=>{if(P&&P.getDuration){const c=P.getCurrentTime(),d=P.getDuration();
+  $("fill").style.width=d?c/d*100+"%":0;$("c").textContent=fmt(c);$("d").textContent=fmt(d)}},500);
+}
+function parse(u){try{const x=new URL(u);const l=x.searchParams.get("list");
+ const v=x.hostname.includes("youtu.be")?x.pathname.slice(1):x.searchParams.get("v");return{v,l}}catch(e){return /^[\w-]{11}$/.test(u)?{v:u}:{}}}
+function enqueue(tr,play){list.push(tr);if(play||cur<0)go(list.length-1);else draw()}
+$("in").onkeydown=async e=>{if(e.key!="Enter")return;const val=$("in").value.trim();if(!val)return;const r=parse(val);
+ if(r.l&&!r.v){enqueue({pl:r.l,t:"Плейлист YouTube"});$("in").value=""}
+ else if(r.v){enqueue({id:r.v,t:"Загрузка…"});$("in").value=""}
+ else if(token||key){await search(val)}
+ else{$("in").value="";setTab("rec");recMsg="Для поиска по названию войди через Google."; draw()}};
+function go(i){if(i<0||i>=list.length||!P)return;cur=i;const x=list[i];
+ x.pl?P.loadPlaylist({list:x.pl,listType:"playlist"}):P.loadVideoById(x.id);draw()}
+$("pp").onclick=()=>P&&(P.getPlayerState()==1?P.pauseVideo():P.playVideo());
+$("nx").onclick=()=>{if(P&&curTrack()&&P.getCurrentTime()<30)learn(artistOf(P.getVideoData()),-1);go(cur+1)};$("pv").onclick=()=>go(cur-1);
+$("bar").onclick=e=>{const r=$("bar").getBoundingClientRect();P.seekTo(P.getDuration()*(e.clientX-r.left)/r.width,true)};
+
+/* tabs */
+document.querySelectorAll(".tabs div").forEach(d=>d.onclick=()=>setTab(d.dataset.t));
+function setTab(t){tab=t;openPl=null;document.querySelectorAll(".tabs div").forEach(d=>d.classList.toggle("on",d.dataset.t==t));draw()}
+function row(t,right,on,fn){const d=document.createElement("div");d.className="it"+(on?" on":"");d.innerHTML="<span>"+esc(t)+"</span><b>"+(right??"")+"</b>";d.onclick=fn;$("q").appendChild(d);return d}
+function head(t){const d=document.createElement("div");d.className="h";d.textContent=t;$("q").appendChild(d)}
+function linkRow(t,fn){const d=document.createElement("div");d.className="link";d.textContent=t;d.onclick=fn;$("q").appendChild(d)}
+function draw(){$("q").innerHTML="";
+ if(tab=="queue"){if(!list.length)head("Очередь пуста");list.forEach((x,i)=>row(x.t,i+1,i==cur,()=>go(i)))}
+ else if(tab=="pl")drawPl();else drawRec()}
+function drawPl(){
+ if(openPl&&pls[openPl]){linkRow("‹ Все плейлисты",()=>{openPl=null;draw()});head(openPl);
+  const tr=pls[openPl];
+  linkRow("▶︎ Играть плейлист",()=>{if(!tr.length)return;list=tr.map(x=>({...x}));go(0)});
+  tr.forEach((x,i)=>{const d=row(x.t,"✕",false,()=>{list=tr.map(y=>({...y}));go(i)});
+   d.lastChild.onclick=ev=>{ev.stopPropagation();tr.splice(i,1);store.set("pls",pls);draw();favState()}});
+  linkRow("Удалить плейлист",()=>{delete pls[openPl];openPl=null;store.set("pls",pls);draw();favState()});return}
+ const names=Object.keys(pls);if(!names.length)head("Плейлистов пока нет. Нажми ♡ у играющего трека.");
+ names.forEach(n=>row(n,pls[n].length,false,()=>{openPl=n;draw()}));
+ linkRow("+ Новый плейлист",()=>{const n=prompt("Название плейлиста");if(n&&!pls[n]){pls[n]=[];store.set("pls",pls);draw()}})}
+
+/* favorites modal */
+function curTrack(){if(!P||!P.getVideoData)return null;const d=P.getVideoData();return d&&d.video_id?{id:d.video_id,t:d.title,a:artistOf(d)}:null}
+function favState(){const t=curTrack();const inPl=t&&Object.values(pls).some(a=>a.some(x=>x.id==t.id));
+ $("fav").textContent=inPl?"♥":"♡";$("fav").classList.toggle("on",!!inPl)}
+$("fav").onclick=()=>{const t=curTrack();if(!t)return;const m=$("mb");m.innerHTML="<h3>Добавить в плейлист</h3>";
+ Object.keys(pls).forEach(n=>{const has=pls[n].some(x=>x.id==t.id);const b=document.createElement("button");
+  b.style.cssText="font-size:14px;text-align:left;border:1px solid var(--ln)";b.textContent=(has?"✓ ":"")+n;
+  b.onclick=()=>{if(!has){pls[n].push(t);learnTrack(t,2)}store.set("pls",pls);close();favState();if(tab=="pl")draw()};m.appendChild(b)});
+ const i=document.createElement("input");i.placeholder="Новый плейлист — название и Enter";
+ i.onkeydown=e=>{if(e.key=="Enter"&&i.value.trim()){const n=i.value.trim();pls[n]=pls[n]||[];if(!pls[n].some(x=>x.id==t.id)){pls[n].push(t);learnTrack(t,2)}store.set("pls",pls);close();favState();if(tab=="pl")draw()}};
+ m.appendChild(i);const c=document.createElement("button");c.textContent="Отмена";c.style.fontSize="14px";c.onclick=close;m.appendChild(c);
+ $("m").classList.add("show");i.focus()};
+function close(){$("m").classList.remove("show")}
+$("m").onclick=e=>{if(e.target.id=="m")close()};
+
+/* Google + YouTube Data API */
+const GENRES=[["Поп","pop"],["Рок","rock"],["Хип-хоп","hip hop"],["Электроника","electronic"],["Джаз","jazz"],["Классика","classical"],["R&B","r&b"],["Инди","indie"],["Метал","metal"],["Lo-fi","lofi"],["Регги","reggae"],["Фолк","folk"]];
+const clean=a=>(a||"").replace(/ - Topic$/i,"").replace(/VEVO$/i,"").trim();
+const artistOf=d=>clean(d&&d.author);
+const save=()=>store.set("prof",prof);
+function bump(o,k,w){if(!k)return;o[k]=Math.max(-5,(o[k]||0)+w);save()}
+function learn(a,w){bump(prof.a,a,w)}
+function learnTrack(t,w){learn(t.a,w);const x=list[cur];if(x&&x.g)bump(prof.g,x.g,w/2)}
+function markSeen(d){if(d.video_id&&!seen.includes(d.video_id)){seen.push(d.video_id);seen=seen.slice(-400);store.set("seen",seen)}}
+const hasProf=()=>Object.keys(prof.g).length||Object.keys(prof.a).length;
+const plIds=()=>Object.values(pls).flat().map(x=>x.id);
+function pick(o,n){const e=Object.entries(o).filter(([k,w])=>w>0),out=[];
+ while(out.length<n&&e.length){const sum=e.reduce((a,x)=>a+x[1],0);let r=Math.random()*sum,i=0;for(;i<e.length-1;i++){r-=e[i][1];if(r<=0)break}out.push(e.splice(i,1)[0][0])}return out}
+async function genRecs(){
+ if(!(token||key))return;const qs=[...pick(prof.a,2).map(a=>({q:a+" лучшие песни",a})),...pick(prof.g,2).map(g=>({q:g+" music",g}))];
+ if(!qs.length)return;recMsg="Подбираю…";draw();const out=[];
+ for(const x of qs){try{const j=await api("search?part=snippet&type=video&videoCategoryId=10&maxResults=10&q="+encodeURIComponent(x.q));
+  j.items.forEach(v=>out.push({id:v.id.videoId,t:v.snippet.title,a:clean(v.snippet.channelTitle),g:x.g||null}))}
+  catch(e){recMsg="Ошибка ("+e.message+"). Проверь ключ или вход.";draw();return}}
+ const bad=new Set([...seen,...(prof.no||[]),...plIds()]),m=new Map();
+ out.forEach(x=>{if(!bad.has(x.id)&&!m.has(x.id))m.set(x.id,x)});
+ recs=[...m.values()].sort(()=>Math.random()-.5).slice(0,15);recMsg=recs.length?"":"Новых треков не нашлось, нажми «Обновить».";draw()}
+function dismiss(x){learn(x.a,-2);prof.no=(prof.no||[]).concat(x.id);save();recs=recs.filter(r=>r.id!=x.id);draw()}
+function inputEl(ph,val){const i=document.createElement("input");i.placeholder=ph;i.value=val||"";i.style.margin="4px 0";$("q").appendChild(i);return i}
+function drawQuiz(){head("Расскажи о вкусах — подберу треки");
+ const w=document.createElement("div");w.style.cssText="display:flex;flex-wrap:wrap;gap:6px;padding:4px 10px";
+ GENRES.forEach(([l,q])=>{const c=document.createElement("div");c.textContent=l;c.style.cssText="padding:5px 10px;border-radius:14px;border:1px solid var(--ln);cursor:pointer;font-size:12px";
+  const sync=()=>{c.style.background=quizG.has(q)?"var(--ac)":"";c.style.color=quizG.has(q)?"#fff":""};sync();
+  c.onclick=()=>{quizG.has(q)?quizG.delete(q):quizG.add(q);sync()};w.appendChild(c)});
+ $("q").appendChild(w);const i=inputEl("Любимые исполнители через запятую");
+ linkRow("Готово",()=>{quizG.forEach(g=>bump(prof.g,g,3));i.value.split(",").map(x=>x.trim()).filter(Boolean).forEach(a=>bump(prof.a,a,3));recs=[];recMsg="";draw()});
+ if(!(token||key)){const h=document.createElement("div");h.className="hint";h.style.padding="6px 10px";h.textContent="Чтобы получать треки, дальше понадобится API-ключ или вход через Google.";$("q").appendChild(h)}}
+function authBox(){head("Нужен доступ к YouTube API");
+ const k=inputEl("API-ключ (проще всего)",key);
+ linkRow("Использовать ключ",()=>{key=k.value.trim();store.set("key",key);recMsg="";recs=[];draw()});
+ head("или вход через Google");const i=inputEl("OAuth Client ID",store.get("cid",""));
+ linkRow("Войти",()=>{store.set("cid",i.value.trim());signIn()});
+ if(recMsg){const h=document.createElement("div");h.className="hint";h.style.padding="6px 10px";h.textContent=recMsg;$("q").appendChild(h)}}
+function drawRec(){
+ if(results.length){head("Результаты поиска");results.forEach(x=>row(x.t,"+",false,()=>enqueue({...x},true)))}
+ if(!hasProf()){drawQuiz();return}
+ if(!(token||key)){authBox();return}
+ head("Подобрано для тебя");if(recMsg)head(recMsg);
+ if(!recs.length&&!recMsg)genRecs();
+ recs.forEach(x=>{const d=row(x.t+(x.a?" — "+x.a:""),"✕",false,()=>enqueue({...x},true));d.lastChild.onclick=ev=>{ev.stopPropagation();dismiss(x)}});
+ linkRow("↻ Обновить",genRecs);
+ if(token){head("Понравившееся на YouTube");liked.forEach(x=>row(x.t,"+",false,()=>enqueue({...x},true)))}
+ linkRow("Сбросить вкусы и пройти тест заново",()=>{prof={g:{},a:{},no:prof.no||[]};save();recs=[];quizG=new Set();draw()});
+ if(token)linkRow("Выйти из Google",()=>{token=null;results=[];liked=[];recs=[];draw()})}
+function signIn(){const cid=store.get("cid","");if(!cid){recMsg="Сначала вставь Client ID.";draw();return}
+ if(!window.google){recMsg="Скрипт Google не загрузился.";draw();return}
+ google.accounts.oauth2.initTokenClient({client_id:cid,scope:"https://www.googleapis.com/auth/youtube.readonly",
+  callback:r=>{if(r.access_token){token=r.access_token;recMsg="";draw();loadLiked()}else{recMsg="Вход не удался.";draw()}}}).requestAccessToken()}
+async function api(path){const r=await fetch("https://www.googleapis.com/youtube/v3/"+path+(token?"":"&key="+encodeURIComponent(key)),{headers:token?{Authorization:"Bearer "+token}:{}});
+ if(!r.ok)throw new Error(r.status);return r.json()}
+async function loadLiked(){try{const j=await api("videos?part=snippet&myRating=like&maxResults=25");
+ liked=j.items.map(v=>({id:v.id,t:v.snippet.title}));if(!liked.length)recMsg="Пока нет отметок «нравится».";}catch(e){recMsg="Ошибка загрузки ("+e.message+")"}
+ if(tab=="rec")draw()}
+async function search(q){try{const j=await api("search?part=snippet&type=video&videoCategoryId=10&maxResults=15&q="+encodeURIComponent(q));
+ results=j.items.map(v=>({id:v.id.videoId,t:v.snippet.title}));$("in").value="";setTab("rec")}catch(e){recMsg="Ошибка поиска ("+e.message+")";setTab("rec")}}
+draw();
+</script></body></html>
